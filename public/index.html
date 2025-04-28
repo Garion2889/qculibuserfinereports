@@ -1,0 +1,146 @@
+<!-- system-management.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library System - System Management & Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-blue-100 bg-center min-h-screen flex flex-col p-8">
+
+  <!-- Header -->
+  <header class="mb-8 flex items-center space-x-2 p-4 bg-blue-900 rounded-lg">
+    <img src="qcu-logo.png" alt="Logo"class="h-16 w-auto"></img>
+    <div class="border-l-4 border-white h-10"></div>
+    <h1 class="text-4xl font-bold text-white">Library System Management</h1>
+  </header>
+
+  <main class="space-y-16">
+
+    <!-- User Management Section -->
+    <section>
+      <div class="flex justify-between items-center mb-6">
+        <div class="border-l-4 border-blue-600 h-8 space-x-16">
+        <h2 class="text-2xl font-semibold text-gray-700 ">User Management</h2>
+      </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-blue-500 p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4">
+        <select id="roleFilter" class="border p-2 rounded-md w-48">
+          <option value="">Filter by Role</option>
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+          <option value="alumni">Alumni</option>
+        </select>
+
+        <select id="branchFilter" class="border p-2 rounded-md w-48">
+          <option value="">Filter by Branch</option>
+          <option value="San Bartolome">San Bartolome</option>
+          <option value="San Francisco">San Francisco</option>
+          <option value="Batasan">Batasan</option>
+        </select>
+
+        <input id="studentSearch" type="text" placeholder="Search by Student ID" class="border p-2 rounded-md flex-1">
+
+        <button class="bg-blue-700 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg shadow">
+          Search
+        </button>
+      </div>
+
+      <!-- User Table -->
+      <div class="overflow-x-auto rounded-lg shadow bg-white">
+        <table class="min-w-full text-sm text-gray-700">
+          <thead class="bg-blue-400 text-gray-50 uppercase text-xs">
+            <tr>
+              <th class="py-3 px-5 text-left">Name</th>
+              <th class="py-3 px-5 text-left">Student ID</th>
+              <th class="py-3 px-5 text-left">Branch</th>
+              <th class="py-3 px-5 text-left">Role</th>
+              <th class="py-3 px-5 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody" class="max-h-60 overflow-y-auto">
+            <!-- Dynamic user rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Active / Alumni Users Section -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-700 mb-6">Active / Alumni Users</h2>
+
+      <div class="overflow-x-auto rounded-lg shadow bg-white">
+        <table class="min-w-full text-sm text-gray-700">
+          <thead class="bg-blue-400 text-gray-50 uppercase text-xs">
+            <tr>
+              <th class="py-3 px-5 text-left">Name</th>
+              <th class="py-3 px-5 text-left">Student ID</th>
+              <th class="py-3 px-5 text-left">Branch</th>
+              <th class="py-3 px-5 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody id="activeAlumniTableBody" class="max-h-60 overflow-y-auto">
+            <!-- Dynamic Active/Alumni rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Fine Management Section -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-700 mb-6">Fine Management</h2>
+
+      <div class="overflow-x-auto rounded-lg shadow bg-white">
+        <table class="min-w-full text-sm text-gray-700">
+          <thead class="bg-blue-400 text-gray-50 uppercase text-xs">
+            <tr>
+              <th class="py-3 px-5 text-left">Name</th>
+              <th class="py-3 px-5 text-left">Student ID</th>
+              <th class="py-3 px-5 text-left">Branch</th>
+              <th class="py-3 px-5 text-left">Role</th>
+              <th class="py-3 px-5 text-left">Due Date</th>
+              <th class="py-3 px-5 text-left">Status</th>
+              <th class="py-3 px-5 text-left">Fine Amount</th>
+              <th class="py-3 px-5 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody id="fineTableBody" class="max-h-60 overflow-y-auto">
+            <!-- Dynamic Fine rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div class="bg-blue-500 p-4 rounded-lg shadow mb-5 flex flex-wrap gap-4">
+        <select id="userTypeFilter" class="border p-2 rounded-md w-48">
+          <option value="">Filter by User Type</option>
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+          <option value="alumni">Alumni</option>
+        </select>
+    
+        <select id="activityFilter" class="border p-2 rounded-md w-48">
+          <option value="">Filter by Activity</option>
+          <option value="borrowed">Borrowed Books</option>
+          <option value="overdue">Overdue Books</option>
+        </select>
+    
+        <button class="bg-blue-700 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg shadow">
+          Filter
+        </button>
+      </div>
+    
+      <!-- Chart Container -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <canvas id="userActivityChart" class="w-full h-96"></canvas>
+      </div>
+    </section>
+  </main>
+  <script src="script.js" defer></script>
+  
+
+</body>
+</html>
