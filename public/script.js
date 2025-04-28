@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAllData();
   
   // Event Listeners
-  document.getElementById('roleFilter').addEventListener('change', loadAllData);
   document.getElementById('branchFilter').addEventListener('change', loadAllData);
   document.getElementById('studentSearch').addEventListener('input', loadAllData);
   document.getElementById('userTypeFilter').addEventListener('change', updateChart);
@@ -16,7 +15,7 @@ let usersCache = [];
 
 async function loadAllData() {
   await fetchUsers();
-  await fetchActiveAlumni();
+  await fetchAlumni();
   await fetchFines();
 }
 
@@ -25,18 +24,16 @@ async function fetchUsers() {
   const users = await res.json();
   usersCache = users; // Save for filtering and searching
 
-  const roleFilterValue = document.getElementById('roleFilter').value.toLowerCase();
-  const branchFilterValue = document.getElementById('branchFilter').value.toLowerCase();
+  const branchFilterValue = document.getElementById('studentBranchFilter').value.trim().toLowerCase();
   const searchValue = document.getElementById('studentSearch').value.trim();
 
-  const tbody = document.getElementById('userTableBody');
+  const tbody = document.getElementById('studentTableBody');
   tbody.innerHTML = '';
 
   const filteredUsers = users.filter(user => {
-    const matchRole = roleFilterValue ? user.ROLE.toLowerCase() === roleFilterValue : true;
     const matchBranch = branchFilterValue ? user.BRANCH.toLowerCase() === branchFilterValue : true;
     const matchSearch = searchValue ? user.STUDENT_ID.toString().includes(searchValue) : true;
-    return matchRole && matchBranch && matchSearch;
+    return matchBranch && matchSearch;
   });
 
   filteredUsers.forEach(user => {
@@ -45,21 +42,30 @@ async function fetchUsers() {
       <td class="py-2 px-5">${user.NAME}</td>
       <td class="py-2 px-5">${user.STUDENT_ID}</td>
       <td class="py-2 px-5">${user.BRANCH}</td>
-      <td class="py-2 px-5">${user.ROLE}</td>
       <td class="py-2 px-5">${user.STATUS}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-async function fetchActiveAlumni() {
+async function fetchAlumni() {
   const res = await fetch('http://localhost:3000/api/active-alumni');
   const users = await res.json();
+  
+  const branchFilterValue = document.getElementById('branchFilter').value.toLowerCase();
+  const searchValue = document.getElementById('studentSearch').value.trim();
 
-  const tbody = document.getElementById('activeAlumniTableBody');
+  const tbody = document.getElementById('alumniTableBody');
   tbody.innerHTML = '';
 
-  users.forEach(user => {
+  const filteredUsers = users.filter(user => {
+    const matchBranch = branchFilterValue ? user.BRANCH.toLowerCase() === branchFilterValue : true;
+    const matchSearch = searchValue ? user.STUDENT_ID.toString().includes(searchValue) : true;
+    return matchBranch && matchSearch;
+  });
+
+  // ⚡ use filteredUsers instead of users!
+  filteredUsers.forEach(user => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="py-2 px-5">${user.NAME}</td>
@@ -164,3 +170,46 @@ async function payFine(studentId) {
     console.error('Error paying fine:', error);
   }
 }
+document.getElementById('user-menu-toggle').addEventListener('click', function() {
+  const menu = document.getElementById('user-menu');
+  menu.classList.toggle('hidden');
+});
+const sectionButtons = document.querySelectorAll('button[data-section]');
+
+// Add event listeners to each button
+sectionButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    // Get the section name from the button's data-section attribute
+    const sectionName = button.getAttribute('data-section');
+
+    // Hide all sections first
+    const allSections = document.querySelectorAll('main section');
+    allSections.forEach(section => {
+      section.classList.add('hidden');
+    });
+
+    // Show the clicked section
+    const activeSection = document.getElementById(`${sectionName}Section`);
+    if (activeSection) {
+      activeSection.classList.remove('hidden');
+    }
+  });
+});
+const buttons = document.querySelectorAll('.selectable-btn');
+
+buttons.forEach(button => {
+  button.addEventListener('click', () => {
+    // First, remove "active" styles from all buttons
+    buttons.forEach(btn => {
+      btn.classList.remove('bg-blue-400'); // Active darker background
+      btn.classList.add('bg-white');    // Reset to default
+      button.classList.remove('text-gray-50')
+      button.classList.add('text-gray-900');
+    });
+
+    // Then, add "active" style to the clicked button
+    button.classList.remove('bg-white');
+    button.classList.add('bg-blue-400');
+    button.classList.add('text-gray-50');
+  });
+});

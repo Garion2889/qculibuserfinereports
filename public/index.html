@@ -2,41 +2,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Library System - System Management & Reports</title>
+  <title>QCULib - System Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="taillightconfigcdn.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-blue-100 bg-center min-h-screen flex flex-col p-8">
+<body class="bg-lightgray min-h-screen flex-col">
+    <!-- Header Section -->
+    <header>
+        <div class="container header-container">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="QCULib Logo">
+                <h1>QCULib</h1>
+            </a>
+            <div class="search-bar">
+                <form id="search-form" novalidate>
+                    <input type="text"
+                           id="header-search"
+                           placeholder="Search books, authors, subjects..."
+                           required
+                           minlength="3">
+                    <button id="search-btn" type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
 
-  <!-- Header -->
-  <header class="mb-8 flex items-center space-x-2 p-4 bg-blue-900 rounded-lg">
-    <img src="qcu-logo.png" alt="Logo"class="h-16 w-auto"></img>
-    <div class="border-l-4 border-white h-10"></div>
-    <h1 class="text-4xl font-bold text-white">Library System Management</h1>
-  </header>
+            <!-- Validation Popup -->
+            <div id="validation-popup" class="validation-popup">
+                <div class="popup-content">
+                    <span class="popup-message"></span>
+                    <button class="popup-close">&times;</button>
+                </div>
+            </div>
+            <button id="login-button" onclick="redirectToLogin()"><i class="fas fa-user"></i> Login</button>
+        </div>
+    </header>
 
-  <main class="space-y-16">
-
-    <!-- User Management Section -->
-    <section>
-      <div class="flex justify-between items-center mb-6">
-        <div class="border-l-4 border-blue-600 h-8 space-x-16">
-        <h2 class="text-2xl font-semibold text-gray-700 ">User Management</h2>
+    <!-- Navigation Section -->
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="catalog.html">Catalog</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="branches.html" class="active">Branches</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+            </ul>
+            <button id="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+  <div class="maincontainer">
+    <aside class="w-5rem min-h-screen bg-white text-gray-800 p-6 space-y-6 shadow-md z-10">
+      <nav class="space-y-4">
+        <div>
+          <h2 class="mb-2 cursor-pointer flex items-center justify-between" id="user-menu-toggle">
+            <div class="flex items-center"><i class="fas fa-users mr-2 p-2"></i>User Management</div>
+            <i class="fas fa-chevron-down ml-2" id="dropdown-icon"></i>
+          </h2>
+          <ul class="space-y-2 ml-2 hidden" id="user-menu">
+            <li><button class="selectable-btn block w-full text-left hover:bg-blue-100 p-2 rounded active:scale-95 active:bg-blue-400 transition duration-150" data-section="student">Student</button></li>
+            <li><button class="selectable-btn block w-full text-left hover:bg-blue-100 p-2 rounded active:scale-95 active:bg-blue-400 transition duration-150" data-section="faculty">Faculty</button></li>
+            <li><button class="selectable-btn block w-full text-left hover:bg-blue-100 p-2 rounded active:scale-95 active:bg-blue-400 transition duration-150" data-section="alumni">Alumni</button></li>
+          </ul>
+        </div>
+    
+        <div>
+          <ul class="mb-2 p-2">
+            <li><button class="selectable-btn block w-full text-left hover:bg-blue-100 rounded active:scale-95 active:bg-blue-400 transition duration-150" data-section="fine">
+              <i class="fas fa-money-bill-wave mr-2"></i>Fine Management</button></li>
+          </ul>
+        </div>
+        
+        <div>
+          <ul class="mb-2 p-2">
+            <li><button class="selectable-btn block w-full text-left hover:bg-blue-100 rounded active:scale-95 active:bg-blue-400 transition duration-150" data-section="reports"><i class="fas fa-chart-bar mr-2"></i>Reports</button></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    
+   <main id="mainContent" class="flex-1 p-8 ml-4 overflow-y-auto">
+      <!-- Student -->
+      <section id="studentSection" class="hidden bg-white shadow-md rounded-lg p-6">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-2xl font-semibold text-gray-700 ">Student</h2>
       </div>
-      </div>
+      
 
       <!-- Filters -->
-      <div class="bg-blue-500 p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4">
-        <select id="roleFilter" class="border p-2 rounded-md w-48">
-          <option value="">Filter by Role</option>
-          <option value="student">Student</option>
-          <option value="faculty">Faculty</option>
-          <option value="alumni">Alumni</option>
-        </select>
-
-        <select id="branchFilter" class="border p-2 rounded-md w-48">
+       <div class="mb-2 rounded-md justify-between bg-darkblue p-2 flex-col ml-2" >
+        <select id="studentBranchFilter" class="border  p-2 rounded-md w-48">
           <option value="">Filter by Branch</option>
           <option value="San Bartolome">San Bartolome</option>
           <option value="San Francisco">San Francisco</option>
@@ -45,58 +108,105 @@
 
         <input id="studentSearch" type="text" placeholder="Search by Student ID" class="border p-2 rounded-md flex-1">
 
-        <button class="bg-blue-700 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg shadow">
-          Search
-        </button>
+        <button class="bg-red hover:bg-darkredhover text-white font-medium px-4 py-2 rounded-lg shadow"><i class="fas fa-search"></i></button>
       </div>
 
       <!-- User Table -->
-      <div class="overflow-x-auto rounded-lg shadow bg-white">
+      <div class="overflow-x-auto rounded-lg shadow bg-white max-h-96 overflow-y-auto shadow-md">
         <table class="min-w-full text-sm text-gray-700">
-          <thead class="bg-blue-400 text-gray-50 uppercase text-xs">
+          <thead class="bg-lightblue text-gray-700 uppercase text-xs">
             <tr>
               <th class="py-3 px-5 text-left">Name</th>
               <th class="py-3 px-5 text-left">Student ID</th>
               <th class="py-3 px-5 text-left">Branch</th>
-              <th class="py-3 px-5 text-left">Role</th>
               <th class="py-3 px-5 text-left">Status</th>
             </tr>
           </thead>
-          <tbody id="userTableBody" class="max-h-60 overflow-y-auto">
+          <tbody id="studentTableBody" class="max-h-60 overflow-y-auto">
             <!-- Dynamic user rows -->
           </tbody>
         </table>
       </div>
     </section>
-
-    <!-- Active / Alumni Users Section -->
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-700 mb-6">Active / Alumni Users</h2>
-
-      <div class="overflow-x-auto rounded-lg shadow bg-white">
-        <table class="min-w-full text-sm text-gray-700">
-          <thead class="bg-blue-400 text-gray-50 uppercase text-xs">
-            <tr>
-              <th class="py-3 px-5 text-left">Name</th>
-              <th class="py-3 px-5 text-left">Student ID</th>
-              <th class="py-3 px-5 text-left">Branch</th>
-              <th class="py-3 px-5 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody id="activeAlumniTableBody" class="max-h-60 overflow-y-auto">
-            <!-- Dynamic Active/Alumni rows -->
-          </tbody>
-        </table>
+     <!-- Faculty -->
+     <section id="facultySection" class="hidden bg-white shadow-md rounded-lg p-6">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-2xl font-semibold text-gray-700 ">Faculty</h2>
       </div>
+       <!-- Filters -->
+       <div class="mb-2 rounded-md justify-between bg-darkblue p-2 flex-col ml-2" >
+       <select id="branchFilter" class="border bg-white p-2 rounded-md w-48">
+        <option value="">Filter by Branch</option>
+        <option value="San Bartolome">San Bartolome</option>
+        <option value="San Francisco">San Francisco</option>
+        <option value="Batasan">Batasan</option>
+      </select>
+
+      <input id="studentSearch" type="text" placeholder="Search by Student ID" class="border p-2 rounded-md flex-1">
+
+      <button class="bg-red hover:bg-darkredhover text-white font-medium px-4 py-2 rounded-lg shadow"><i class="fas fa-search"></i></button>
+    </div>
+    <!-- User Table -->
+    <div class="overflow-x-auto rounded-lg shadow bg-white max-h-96 overflow-y-auto">
+      <table class="min-w-full text-sm text-gray-700">
+        <thead class="bg-gray-50 text-gray-700 uppercase text-xs">
+          <tr>
+            <th class="py-3 px-5 text-left">Name</th>
+            <th class="py-3 px-5 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody id="facultyTableBody" class="max-h-60 overflow-y-auto">
+          <!-- Dynamic user rows -->
+        </tbody>
+      </table>
+    </div>
+    </section>
+  
+    <!-- Alumni -->
+    <section id="alumniSection" class="hidden bg-white shadow-md rounded-lg p-6">
+    
+      <h2 class="text-2xl font-bold mb-2">Alumni</h2>
+       <!-- Filters -->
+       <div class="mb-2 rounded-md justify-between bg-darkblue p-2 flex-col ml-2" >
+       <select id="alumniBranchFilter" class="border bg-white p-2 rounded-md w-48">
+        <option value="">Filter by Branch</option>
+        <option value="San Bartolome">San Bartolome</option>
+        <option value="San Francisco">San Francisco</option>
+        <option value="Batasan">Batasan</option>
+      </select>
+
+      <input id="alumniSearch" type="text" placeholder="Search by Student ID" class="border p-2 rounded-md flex-1">
+
+      <button class="bg-red hover:bg-darkredhover text-white font-medium px-4 py-2 rounded-lg shadow"><i class="fas fa-search"></i></button>
+    </div>
+
+    <!-- User Table -->
+    <div class="overflow-x-auto rounded-lg shadow bg-white max-h-96 overflow-y-auto">
+      <table class="min-w-full text-sm text-gray-700">
+        <thead class="bg-lightblue text-gray-700 uppercase text-xs">
+          <tr>
+            <th class="py-3 px-5 text-left">Name</th>
+            <th class="py-3 px-5 text-left">Student ID</th>
+            <th class="py-3 px-5 text-left">Branch</th>
+            <th class="py-3 px-5 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody id="alumniTableBody" class="max-h-60 overflow-y-auto">
+          <!-- Dynamic user rows -->
+        </tbody>
+        </table>
+    </div>
     </section>
 
-    <!-- Fine Management Section -->
-    <section>
+
+    <!-- Similar changes for Faculty and Alumni sections (change the IDs appropriately) -->
+
+    <section id="fineSection" class="hiddenbg-white shadow-md rounded-lg p-6">
       <h2 class="text-2xl font-semibold text-gray-700 mb-6">Fine Management</h2>
 
-      <div class="overflow-x-auto rounded-lg shadow bg-white">
+      <div class="overflow-x-auto rounded-lg shadow bg-white max-h-96 overflow-y-auto">
         <table class="min-w-full text-sm text-gray-700">
-          <thead class="bg-blue-400 text-gray-50 uppercase text-xs">
+          <thead class="bg-gray-50 text-gray-700 uppercase text-xs">
             <tr>
               <th class="py-3 px-5 text-left">Name</th>
               <th class="py-3 px-5 text-left">Student ID</th>
@@ -114,7 +224,10 @@
         </table>
       </div>
     </section>
-    <div class="bg-blue-500 p-4 rounded-lg shadow mb-5 flex flex-wrap gap-4">
+
+    <section id="reportsSection" class="hidden bg-white shadow-md rounded-lg p-6">
+      <h2 class="text-2xl font-bold mb-4">Reports</h2>
+      <div class="bg-darkblue p-4 rounded-lg shadow mb-5 flex flex-wrap gap-4">
         <select id="userTypeFilter" class="border p-2 rounded-md w-48">
           <option value="">Filter by User Type</option>
           <option value="student">Student</option>
@@ -128,19 +241,17 @@
           <option value="overdue">Overdue Books</option>
         </select>
     
-        <button class="bg-blue-700 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg shadow">
+        <button class="bg-red hover:bg-darkredhover text-white font-medium px-4 py-2 rounded-lg shadow">
           Filter
         </button>
       </div>
-    
       <!-- Chart Container -->
       <div class="bg-white p-6 rounded-lg shadow">
         <canvas id="userActivityChart" class="w-full h-96"></canvas>
       </div>
     </section>
-  </main>
+   </main>
+  </div>
+  </body>
   <script src="script.js" defer></script>
-  
-
-</body>
 </html>
