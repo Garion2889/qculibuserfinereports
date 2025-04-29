@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="taillightconfigcdn.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -216,7 +217,7 @@
             <!-- Dynamic Fine rows -->
           </tbody>
         </table>
-        <button onclick="sendDueDateNotifications()">send</button>
+        <button onclick="sendDueDateNotifications()"></button>
       </div>
     </section>
 
@@ -224,16 +225,10 @@
       <h2 class="text-2xl font-bold mb-4">Reports</h2>
       <div class="bg-darkblue p-4 rounded-lg shadow mb-5 flex flex-wrap gap-4">
         <select id="userTypeFilter" class="border p-2 rounded-md w-48">
-          <option value="">Filter by User Type</option>
+          <option value="">All</option>
           <option value="student">Student</option>
           <option value="faculty">Faculty</option>
           <option value="alumni">Alumni</option>
-        </select>
-    
-        <select id="activityFilter" class="border p-2 rounded-md w-48">
-          <option value="">Filter by Activity</option>
-          <option value="borrowed">Borrowed Books</option>
-          <option value="overdue">Overdue Books</option>
         </select>
     
         <button class="bg-red hover:bg-darkredhover text-white font-medium px-4 py-2 rounded-lg shadow">

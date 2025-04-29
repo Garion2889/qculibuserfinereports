@@ -189,8 +189,9 @@ app.post('/api/pay', async (req, res) => {
   try {
     connection = await oracledb.getConnection(dbConfig);
 
+    // Check if the student exists
     const userResult = await connection.execute(
-      `SELECT email, name FROM users WHERE student_id = :student_id`,
+      `SELECT name FROM users WHERE student_id = :student_id`,
       { student_id },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -199,8 +200,9 @@ app.post('/api/pay', async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    const { email, name } = userResult.rows[0];
+    const { name } = userResult.rows[0];
 
+    // Update the fine status
     const updateSql = `
       UPDATE fines
       SET payment_status = 'Paid'
@@ -212,27 +214,7 @@ app.post('/api/pay', async (req, res) => {
       return res.status(404).json({ error: 'Fine not found or already paid' });
     }
 
-    // Optional email notification
-    if (email && email.includes('@')) {
-      const mailOptions = {
-        from: 'qculibtest1@gmail.com',
-        to: email,
-        subject: 'Fine Payment Confirmation',
-        text: `Hi ${name},\n\nYour fine has been successfully marked as Paid.\n\nThank you!`
-      };
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email:', error);
-        } else {
-          console.log('Email sent:', info.response);
-        }
-      });
-    } else {
-      console.warn(`No valid email found for student_id: ${student_id}`);
-    }
-
-    res.json({ message: 'Fine paid and email (if available) sent successfully' });
+    res.json({ message: `Fine for ${name} marked as Paid successfully.` });
 
   } catch (err) {
     console.error('Error updating fine:', err);
@@ -247,10 +229,7 @@ app.post('/api/pay', async (req, res) => {
     }
   }
 });
-function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
+
 
 // Start server
 app.listen(PORT, () => {

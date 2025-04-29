@@ -18,6 +18,7 @@ async function loadAllData() {
   await fetchFaculty()
   await fetchAlumni();
   await fetchFines();
+  await updateChart()
 }
 
 async function fetchUsers() {
@@ -139,18 +140,27 @@ async function fetchFines() {
 let userActivityChart;
 
 function updateChart() {
-  const userType = document.getElementById('userTypeFilter').value.toLowerCase();
-  const activityType = document.getElementById('activityFilter').value.toLowerCase();
+  const userTypeFilter = document.getElementById('userTypeFilter').value.toLowerCase();
 
-  // Dummy chart data simulation
-  let borrowed = 0;
-  let overdue = 0;
+  // Counters
+  const counts = {
+    student: { active: 0, inactive: 0 },
+    faculty: { active: 0, inactive: 0 },
+    alumni: { active: 0, inactive: 0 }
+  };
 
   usersCache.forEach(user => {
-    if (userType && user.ROLE.toLowerCase() !== userType) return;
-    // Simulate some borrowed and overdue counts
-    borrowed += Math.floor(Math.random() * 5); 
-    overdue += Math.floor(Math.random() * 2);
+    const role = user.ROLE.toLowerCase();
+    const status = user.STATUS.toLowerCase();
+
+    if (!counts[role]) return;
+    if (userTypeFilter && role !== userTypeFilter) return;
+
+    if (status === 'active') {
+      counts[role].active++;
+    } else if (status === 'inactive') {
+      counts[role].inactive++;
+    }
   });
 
   const ctx = document.getElementById('userActivityChart').getContext('2d');
@@ -162,23 +172,43 @@ function updateChart() {
   userActivityChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Borrowed Books', 'Overdue Books'],
-      datasets: [{
-        label: 'Number of Books',
-        data: activityType === 'borrowed' ? [borrowed, 0] : activityType === 'overdue' ? [0, overdue] : [borrowed, overdue],
-        backgroundColor: ['#3B82F6', '#EF4444']
-      }]
+      labels: ['Student', 'Faculty', 'Alumni'],
+      datasets: [
+        {
+          label: 'Active',
+          data: [counts.student.active, counts.faculty.active, counts.alumni.active],
+          backgroundColor: '#10B981' // Green
+        },
+        {
+          label: 'Inactive',
+          data: [counts.student.inactive, counts.faculty.inactive, counts.alumni.inactive],
+          backgroundColor: '#F59E0B' // Yellow/Orange
+        }
+      ]
     },
     options: {
       responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'User Activity by Role and Status'
+        }
+      },
       scales: {
         y: {
           beginAtZero: true
+        },
+        x: {
+          stacked: true
+        },
+        y: {
+          stacked: true
         }
       }
     }
   });
 }
+
 async function payFine(studentId) {
   try {
     const response = await fetch('http://localhost:3000/api/pay', {
