@@ -1,6 +1,8 @@
 const express = require('express');
 const oracledb = require('oracledb');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 
 const app = express();
 const PORT = 3000;
@@ -21,11 +23,25 @@ const dbConfig = {
   password: "123",
   connectString: "localhost:1521/xe"
 };
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'qculibtest1@gmail.com',
+    pass: 'qkae avep hgfo deix'
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
 
 // Fetch users with optional role and branch filters
+// Fetch users with optional role, branch, status, and student_id filters
 app.get('/api/users', async (req, res) => {
   let connection;
-  const { role, branch, student_id } = req.query; // Get query parameters
+  const { branch, student_id, role, status } = req.query; // added role and status
   
   try {
     connection = await oracledb.getConnection(dbConfig);
@@ -33,10 +49,6 @@ app.get('/api/users', async (req, res) => {
     let sql = `SELECT name, student_id, branch, role, status FROM users WHERE 1=1`;
     const binds = {};
 
-    if (role) {
-      sql += ` AND LOWER(role) = :role`;
-      binds.role = role.toLowerCase();
-    }
     if (branch) {
       sql += ` AND LOWER(branch) = :branch`;
       binds.branch = branch.toLowerCase();
@@ -45,68 +57,10 @@ app.get('/api/users', async (req, res) => {
       sql += ` AND student_id LIKE :student_id`;
       binds.student_id = `%${student_id}%`;
     }
-
-    const result = await connection.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
-  } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error(err);
-      }
+    if (role) {
+      sql += ` AND LOWER(role) = :role`;
+      binds.role = role.toLowerCase();
     }
-  }
-});
-
-// Fetch active or alumni users
-app.get('/api/active-alumni', async (req, res) => {
-  let connection;
-  const { status } = req.query;
-
-  try {
-    connection = await oracledb.getConnection(dbConfig);
-
-    let sql = `SELECT name, student_id, branch, status FROM users WHERE status IN ('Active', 'Alumni')`;
-    const binds = {};
-
-    if (status) {
-      sql = `SELECT name, student_id, branch, status FROM users WHERE LOWER(status) = :status`;
-      binds.status = status.toLowerCase();
-    }
-
-    const result = await connection.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
-  } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
-});
-
-// Fetch fines with optional status filter
-app.get('/api/fines', async (req, res) => {
-  let connection;
-  const { status } = req.query;
-
-  try {
-    connection = await oracledb.getConnection(dbConfig);
-
-    let sql = `SELECT name, student_id, branch, role, due_date, status, fine_amount FROM fines WHERE 1=1`;
-    const binds = {};
-
     if (status) {
       sql += ` AND LOWER(status) = :status`;
       binds.status = status.toLowerCase();
@@ -128,6 +82,100 @@ app.get('/api/fines', async (req, res) => {
     }
   }
 });
+
+// Fetch Faculty Table
+app.get('/api/faculty', async (req, res) => {
+  let connection;
+  const { status } = req.query;
+
+  try {
+    connection = await oracledb.getConnection(dbConfig);
+
+    let sql = `SELECT name, status from faculty`;
+    const binds = {};
+
+    const result = await connection.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+});
+
+// Fetch active or alumni users
+app.get('/api/alumni', async (req, res) => {
+  let connection;
+  const { status } = req.query;
+
+  try {
+    connection = await oracledb.getConnection(dbConfig);
+
+    let sql = `SELECT name, student_id, branch, status FROM users WHERE role IN ('Alumni')`;
+    const binds = {};
+
+    if (status) {
+      sql = `SELECT name, student_id, branch, status FROM users WHERE LOWER(role) = :role`;
+      binds.status = status.toLowerCase();
+    }
+
+    const result = await connection.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+});
+
+// Fetch fines
+app.get('/api/fines', async (req, res) => {
+  let connection;
+  const { status } = req.query;
+
+  try {
+    connection = await oracledb.getConnection(dbConfig);
+
+    let sql = `SELECT name, student_id, branch, role, due_date, payment_status, fine_amount FROM fines WHERE 1=1`;
+    const binds = {};
+
+    if (status) {
+      sql += ` AND LOWER(payment_status) = :payment_status`;
+      binds.payment_status = status.toLowerCase();
+    }
+
+    const result = await connection.execute(sql, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+});
+
 // Pay fine and update status to "paid"
 // API to mark fine as paid
 app.post('/api/pay', async (req, res) => {
@@ -141,19 +189,51 @@ app.post('/api/pay', async (req, res) => {
   try {
     connection = await oracledb.getConnection(dbConfig);
 
+    const userResult = await connection.execute(
+      `SELECT email, name FROM users WHERE student_id = :student_id`,
+      { student_id },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const { email, name } = userResult.rows[0];
+
     const updateSql = `
       UPDATE fines
-      SET status = 'Paid'
-      WHERE student_id = :student_id AND status = 'Unpaid'
+      SET payment_status = 'Paid'
+      WHERE student_id = :student_id AND payment_status = 'Unpaid'
     `;
+    const updateResult = await connection.execute(updateSql, { student_id }, { autoCommit: true });
 
-    const result = await connection.execute(updateSql, { student_id }, { autoCommit: true });
-
-    if (result.rowsAffected === 0) {
+    if (updateResult.rowsAffected === 0) {
       return res.status(404).json({ error: 'Fine not found or already paid' });
     }
 
-    res.json({ message: 'Fine paid successfully' });
+    // Optional email notification
+    if (email && email.includes('@')) {
+      const mailOptions = {
+        from: 'qculibtest1@gmail.com',
+        to: email,
+        subject: 'Fine Payment Confirmation',
+        text: `Hi ${name},\n\nYour fine has been successfully marked as Paid.\n\nThank you!`
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+        } else {
+          console.log('Email sent:', info.response);
+        }
+      });
+    } else {
+      console.warn(`No valid email found for student_id: ${student_id}`);
+    }
+
+    res.json({ message: 'Fine paid and email (if available) sent successfully' });
+
   } catch (err) {
     console.error('Error updating fine:', err);
     res.status(500).json({ error: 'Database error' });
@@ -167,6 +247,10 @@ app.post('/api/pay', async (req, res) => {
     }
   }
 });
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
 
 // Start server
 app.listen(PORT, () => {

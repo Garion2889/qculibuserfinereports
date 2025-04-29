@@ -1,11 +1,11 @@
-// script.js
-
 document.addEventListener('DOMContentLoaded', () => {
   loadAllData();
   
   // Event Listeners
-  document.getElementById('branchFilter').addEventListener('change', loadAllData);
+  document.getElementById('studentBranchFilter').addEventListener('change', loadAllData);
   document.getElementById('studentSearch').addEventListener('input', loadAllData);
+  document.getElementById('alumniBranchFilter').addEventListener('change', loadAllData);
+  document.getElementById('alumniSearch').addEventListener('input', loadAllData);
   document.getElementById('userTypeFilter').addEventListener('change', updateChart);
   document.getElementById('activityFilter').addEventListener('change', updateChart);
 });
@@ -15,6 +15,7 @@ let usersCache = [];
 
 async function loadAllData() {
   await fetchUsers();
+  await fetchFaculty()
   await fetchAlumni();
   await fetchFines();
 }
@@ -48,12 +49,38 @@ async function fetchUsers() {
   });
 }
 
+async function fetchFaculty() {
+  try {
+    const res = await fetch('http://localhost:3000/api/faculty');
+    const users = await res.json();
+    const searchValue = document.getElementById('nameSearch').value.trim().toLowerCase();
+
+    const tbody = document.getElementById('facultyTableBody');
+    tbody.innerHTML = '';
+
+    const filteredUsers = users.filter(user => {
+      return searchValue ? user.NAME.toLowerCase().includes(searchValue) : true;
+    });
+
+    filteredUsers.forEach(user => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-2 px-5">${user.NAME}</td>
+        <td class="py-2 px-5">${user.STATUS}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('Error fetching faculty:', error);
+  }
+}
+
 async function fetchAlumni() {
-  const res = await fetch('http://localhost:3000/api/active-alumni');
+  const res = await fetch('http://localhost:3000/api/alumni');
   const users = await res.json();
   
-  const branchFilterValue = document.getElementById('branchFilter').value.toLowerCase();
-  const searchValue = document.getElementById('studentSearch').value.trim();
+  const branchFilterValue = document.getElementById('alumniBranchFilter').value.toLowerCase();
+  const searchValue = document.getElementById('alumniSearch').value.trim();
 
   const tbody = document.getElementById('alumniTableBody');
   tbody.innerHTML = '';
@@ -64,7 +91,6 @@ async function fetchAlumni() {
     return matchBranch && matchSearch;
   });
 
-  // ⚡ use filteredUsers instead of users!
   filteredUsers.forEach(user => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -76,6 +102,10 @@ async function fetchAlumni() {
     tbody.appendChild(tr);
   });
 }
+
+// Other functions remain unchanged
+// ...
+
 
 async function fetchFines() {
   const res = await fetch('http://localhost:3000/api/fines');
@@ -92,10 +122,10 @@ async function fetchFines() {
       <td class="py-2 px-5">${fine.BRANCH}</td>
       <td class="py-2 px-5">${fine.ROLE}</td>
       <td class="py-2 px-5">${fine.DUE_DATE}</td>
-      <td class="py-2 px-5">${fine.STATUS}</td>
+      <td class="py-2 px-5">${fine.PAYMENT_STATUS}</td>
       <td class="py-2 px-5">${fine.FINE_AMOUNT}</td>
       <td class="py-2 px-5">
-        ${fine.STATUS.toLowerCase() === 'unpaid' ? 
+        ${fine.PAYMENT_STATUS.toLowerCase() === 'unpaid' ? 
           `<button class="text-blue-600 hover:underline" onclick="payFine('${fine.STUDENT_ID}', this)">Pay</button>` : 
           `<span class="text-green-600">Paid</span>`
         }
@@ -213,3 +243,72 @@ buttons.forEach(button => {
     button.classList.add('text-gray-50');
   });
 });
+
+async function sendDueDateNotifications() {
+  let connection;
+  try {
+    connection = await oracledb.getConnection(dbConfig);
+
+    const finesQuery = `
+      SELECT u.email, u.name, f.student_id, f.due_date, f.status
+      FROM fines f
+      JOIN users u ON f.student_id = u.student_id
+      WHERE f.status = 'Unpaid'
+    `;
+
+    const result = await connection.execute(finesQuery, {}, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+    const fines = result.rows;
+
+    const today = new Date();
+
+    for (const fine of fines) {
+      const dueDate = new Date(fine.DUE_DATE);
+
+      // Calculate difference in days
+      const diffTime = dueDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // in days
+
+      let subject = '';
+      let message = '';
+
+      if (diffDays === 3) {
+        subject = "Reminder: Your due date is in 3 days!";
+        message = `Hi ${fine.NAME},\n\nYour due date is in 3 days.\nPlease settle your fine before ${dueDate.toDateString()}.\n\nThank you!`;
+      } else if (diffDays === 0) {
+        subject = "Today is your due date!";
+        message = `Hi ${fine.NAME},\n\nToday is your due date!\nPlease settle your fine by the end of the day.\n\nThank you!`;
+      } else if (diffDays < 0) {
+        subject = "Overdue: You missed your due date.";
+        message = `Hi ${fine.NAME},\n\nYou have missed your due date (${dueDate.toDateString()}).\nPlease settle your fine immediately.\n\nThank you!`;
+      } else {
+        continue; // No need to send anything
+      }
+
+      const mailOptions = {
+        from: 'qculibtest1@gmail.com',
+        to: fine.EMAIL,
+        subject: subject,
+        text: message
+      };
+
+      // Send email
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email to', fine.EMAIL, error);
+        } else {
+          console.log('Notification email sent to', fine.EMAIL, ':', info.response);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error in sending notifications:', err);
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
+  }
+}

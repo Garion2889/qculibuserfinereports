@@ -135,21 +135,15 @@
       </div>
        <!-- Filters -->
        <div class="mb-2 rounded-md justify-between bg-darkblue p-2 flex-col ml-2" >
-       <select id="branchFilter" class="border bg-white p-2 rounded-md w-48">
-        <option value="">Filter by Branch</option>
-        <option value="San Bartolome">San Bartolome</option>
-        <option value="San Francisco">San Francisco</option>
-        <option value="Batasan">Batasan</option>
-      </select>
 
-      <input id="studentSearch" type="text" placeholder="Search by Student ID" class="border p-2 rounded-md flex-1">
+      <input id="nameSearch" type="text" placeholder="Search by Name" class="border p-2 rounded-md flex-1">
 
       <button class="bg-red hover:bg-darkredhover text-white font-medium px-4 py-2 rounded-lg shadow"><i class="fas fa-search"></i></button>
     </div>
     <!-- User Table -->
     <div class="overflow-x-auto rounded-lg shadow bg-white max-h-96 overflow-y-auto">
       <table class="min-w-full text-sm text-gray-700">
-        <thead class="bg-gray-50 text-gray-700 uppercase text-xs">
+        <thead class="bg-lightblue text-gray-700 uppercase text-xs">
           <tr>
             <th class="py-3 px-5 text-left">Name</th>
             <th class="py-3 px-5 text-left">Status</th>
@@ -222,6 +216,7 @@
             <!-- Dynamic Fine rows -->
           </tbody>
         </table>
+        <button onclick="sendDueDateNotifications()">send</button>
       </div>
     </section>
 
